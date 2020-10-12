@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 class ValueGenerator : IObservable<int> {
+   // Liste der Observer, die an Änderungen interessiert sind
    private List<IObserver<int>> observers;
 
     public ValueGenerator() {
@@ -9,13 +10,35 @@ class ValueGenerator : IObservable<int> {
     }
 
     public IDisposable Subscribe(IObserver<int> observer) {
+        // Observer in Liste hinzufügen wenn noch nicht vorhanden
         if (!observers.Contains(observer)) {
             observers.Add(observer);
         }
         return new Unsubscriber(observers, observer);
     }
 
-   private class Unsubscriber : IDisposable {
+    public void doSomething() {
+        var rand = new Random();
+        var val = rand.Next(100);
+        foreach (var observer in observers.ToArray()) {
+            if (val >= 50) {
+                // Observer über neuen Wert informieren
+                observer.OnNext(val);
+            }
+        }
+    }
+
+    // Observer mitteilen, dass Observable keine Werte mehr sendet
+    public void stop() {
+        foreach (var observer in observers.ToArray()) {
+            if (observers.Contains(observer)) {
+                observer.OnCompleted();
+            }
+        }
+        observers.Clear();
+    }
+
+    private class Unsubscriber : IDisposable {
         private List<IObserver<int>>_observers;
         private IObserver<int> _observer;
 
@@ -30,23 +53,4 @@ class ValueGenerator : IObservable<int> {
             }
         }
    }
-
-    public void doSomething() {
-        var rand = new Random();
-        var val = rand.Next(100);
-        foreach (var observer in observers.ToArray()) {
-            if (val >= 50) {
-                observer.OnNext(val);
-            }
-        }
-    }
-
-    public void stop() {
-        foreach (var observer in observers.ToArray()) {
-            if (observers.Contains(observer)) {
-                observer.OnCompleted();
-            }
-        }
-        observers.Clear();
-    }
 }
