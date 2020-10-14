@@ -19,12 +19,9 @@ class ValueGenerator : IObservable<int> {
 
     public void doSomething() {
         var rand = new Random();
-        var val = rand.Next(100);
         foreach (var observer in observers.ToArray()) {
-            if (val >= 50) {
-                // Observer über neuen Wert informieren
-                observer.OnNext(val);
-            }
+            // Observer über neuen Wert informieren
+            observer.OnNext(rand.Next(100));
         }
     }
 
